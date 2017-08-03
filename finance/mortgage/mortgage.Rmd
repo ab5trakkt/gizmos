@@ -1,0 +1,131 @@
+---
+title: "Mortgage calculator"
+output: html_notebook
+---
+```{r}
+m <- 4000 # Monthly payment
+i_start = 2.25
+i_end   = 5.0
+i_step  = 0.25
+T <- 12   # Pay periods per year
+Y <- 25   # Initial term (years)
+N <- T*Y  # Number of pay periods
+
+sprintf("Yearly payments (after-tax):  %d", (12*m))
+sprintf("Yearly payments (before-tax): %d", floor(12*m/0.66))
+sprintf("Total payments (%d-year):     %d", Y, T*m*Y)
+```
+
+```{r}
+i_eff <- function(i,T)
+{
+  1.0+(i/100/T)
+}
+
+# Calculate k^-1 + k^-2 + .. + k^-n
+inv_sum_k <- function(k, n)
+{
+  s <- 0
+  for (j in seq(1,n))
+  {
+    s <- s + k^-j
+  }
+  return (s)
+}
+
+
+# Calculate 1+ k + k^2 + .. + k^n
+sum_k <- function(k, n)
+{
+  s <- 0
+  for (j in seq(0,n))
+  {
+    s <- k*s+1
+  }
+  return (s)
+}
+#print(i_sum_k(2,0))
+#print(sum_k(2,2))
+```
+
+```{r}
+i <- seq(i_start,i_end, by=i_step) 
+mp_0 <- floor(m*inv_sum_k(i_eff(i, T), N))
+mp_5 <- floor(mp_0/0.95)
+mp_10 <- floor(mp_0/0.9)
+mp_20 <- floor(mp_0/0.8)
+ti <- rep(N*m, length(i))-mp_0
+mi <- floor(ti/N)
+p5 <- mp_0*(i_eff(i, T)^(T*5)) - m*sum_k(i_eff(i, T), T*5-1)
+p5p <- floor((1.0-p5/mp_0)*100)
+
+tbl1 <- data.frame(i,
+                   mp_0,
+                   mp_5,
+                   mp_10,
+                   mp_20,
+                   ti,
+                   mi,
+                   p5,
+                   p5p)
+
+colnames(tbl1) <- c("Rate", "Max price (0 down)", "Max price (5 down)", "Max price (10 down)", "Max price (20 down)", "Total interest", "Monthly interest (25Y)", "Remaining after 5 years", "Percent paid after 5 years")
+tbl1
+```
+
+# Additional monthly cost if interest rate changes (after 5 year term)
+```{r}
+mat_add_mon_20 <- matrix(0, length(i), length(i))
+mat_add_dtot_20 <- matrix(0, length(i), length(i))
+mat_remort_mon_25 <- matrix(0, length(i), length(i))
+mat_remort_dtot_25 <- matrix(0, length(i), length(i))
+
+cols <- c("Remaining", "Old Rate")
+Nr<-1
+Nc<-1
+for (old_i in i)
+{
+  cols <- c(cols, old_i)
+  
+  PM <- m*inv_sum_k(i_eff(old_i, T), N)
+  P5 <- PM*(i_eff(old_i, T)^(T*5)) - m*sum_k(i_eff(old_i, T), T*5-1)
+  for (new_i in i)
+  {
+    mat_add_mon_20[Nr,Nc] <- floor(P5/inv_sum_k(i_eff(new_i, T), 20*T) - m)
+    mat_add_dtot_20[Nr,Nc] <- floor((m*T*5 + (P5/inv_sum_k(i_eff(new_i, T), (Y-5)*T))*(Y-5)*T - m*T*Y)/1000)
+    mat_remort_mon_25[Nr, Nc] <- floor(P5/inv_sum_k(i_eff(new_i, T), 25*T))
+    mat_remort_dtot_25[Nr, Nc] <- floor((m*T*5 + (P5/inv_sum_k(i_eff(new_i, T), Y*T))*T*Y - m*T*Y)/1000)
+    Nc <- Nc + 1
+  }
+  Nc <- 1
+  Nr <- Nr + 1
+}
+
+tbl2 <- data.frame(p5, i, mat_add_mon_20)
+colnames(tbl2) <- cols
+tbl2
+```
+
+# Total additional cost if interest rate changes (in thousands)
+
+```{r}
+
+tbl3 <- data.frame(p5, i, mat_add_dtot_20)
+colnames(tbl3) <- cols
+tbl3
+```
+
+
+# New monthly for re-mort
+
+```{r}
+tbl4 <- data.frame(p5, i, mat_remort_mon_25)
+colnames(tbl4) <- cols
+tbl4
+```
+# Difference in total additional cost for re-amort (in thousands)
+```{r}
+tbl5 <- data.frame(p5, i, mat_remort_dtot_25)
+colnames(tbl5) <- cols
+tbl5
+```
