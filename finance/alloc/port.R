@@ -1,17 +1,35 @@
 library(dplyr)
+library(quantmod)
 
-## Session -> set working directory to source file location
 filename <- file.path(getwd(), "port-smpl.csv")
 
 ## Target allocations (%)
 trE <- 80 # Equity
 trF <- 15 # Fixed-income
 trC <- 5  # Cash
-x <- 1.0/0.80 # USD2CAD
+
+symCADperUSD <- suppressWarnings(getSymbols("CADUSD=X", src="yahoo", auto.assign = F))
+CADperUSD <- 1.0/as.numeric(Cl(last(symCADperUSD)))
+CADperUSD
 
 port <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE)
 port <- data.frame(port)
-port$Price[port$Currency=="U"] <- x*port$Price[port$Currency=="U"]
+
+quotes <- port %>%
+  filter(SecType != 'C') %>%
+  filter(Name != 'NULL') %>%
+  distinct(Name) %>%
+  mutate(Price=0)
+
+for (q in quotes$Name)
+{
+  sym = suppressWarnings(getSymbols(q, src="yahoo", auto.assign = F))
+  quotes$Price[quotes$Name==q] = as.numeric(Cl(last(sym)))
+}
+
+port <- left_join(port, quotes)
+port$Price[is.na(port$Price)] <- 1
+port$Price[port$Currency=="U"] <- CADperUSD*port$Price[port$Currency=="U"]
 port <- port %>%
     mutate(val=round(Price*Amount/1000,1)) %>%
     arrange(val)
