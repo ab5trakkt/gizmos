@@ -1,0 +1,8 @@
+Comment,Currency,Ticker,Alloc
+Cdn equity,CAD,XIC.TO,17
+US equity,CAD,XUU.TO,21
+Intl equity (DM),CAD,XEF.TO,14
+Intl equity (EM),CAD,XEC.TO,4
+Cdn short-term bonds,CAD,XSQ.TO,17
+Cdn REIT,CAD,XRE.TO,5
+Cdn preferred,CAD,CPD.TO,18
