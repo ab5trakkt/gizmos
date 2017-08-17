@@ -24,3 +24,7 @@ port <- port %>%
     mutate(usd=cad/CADperUSD) %>%
     mutate(shrs=floor(cad/Price))
 port
+sum <- port %>%
+    summarize(sum(cad))
+cash <- amount-sum
+cash
