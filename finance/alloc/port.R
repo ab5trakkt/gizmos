@@ -30,9 +30,13 @@ for (q in quotes$Name)
 port <- left_join(port, quotes)
 port$Price[is.na(port$Price)] <- 1
 port$Price[port$Currency=="U"] <- CADperUSD*port$Price[port$Currency=="U"]
+port$ACB[port$Currency=="U"] <- CADperUSD*port$ACB[port$Currency=="U"]
 port <- port %>%
     mutate(val=round(Price*Amount/1000,1)) %>%
+    mutate(gain=round((Price-ACB)*Amount,1)) %>%
+    mutate(gain_pct=round(gain/(ACB*Amount)*100,1)) %>%
     arrange(val)
+#port
 
 tblC <- port %>%
   group_by(AcctType) %>%
@@ -66,7 +70,8 @@ totF <- tbl %>%
 tot = totE+totC+totF
 
 port <- port %>%
-  mutate(r=round(val/tot*100,1))
+  mutate(r=round(val/tot*100,1)) %>%
+  mutate(gain_pct_tot=round(gain_pct*0.01*r,1))
 port
 
 tbl <- tbl %>%
@@ -93,4 +98,4 @@ liquidity <- tbl %>%
   pull(1)
 
 tbl %>%
-  summarize(sum(totA), liquidity, sum(totE), sum(totF), sum(totC), sum(rE), sum(rF), sum(rC))
+  summarize(sum(totA), liquidity, sum(totE), sum(totF), sum(totC), sum(RE), sum(RF), sum(RC))
