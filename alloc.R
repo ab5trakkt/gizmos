@@ -92,4 +92,7 @@ shares <- ggplot(port, aes(x =Ticker, y=shrs)) +
        y = NULL)
 
 plot2 <- plot_grid(allocCad, allocUsd)
-plot_grid (model, plot2, shares, nrow = 3)
+plot_grid (model, plot2, shares, nrow = 3, scale = 0.9)
+ggsave("allocation.pdf", width = 9.07, height = 8.91)
+
+?ggsave
