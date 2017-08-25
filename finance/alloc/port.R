@@ -30,7 +30,7 @@ for (q in quotes$Name)
 port <- left_join(port, quotes)
 port$Price[is.na(port$Price)] <- 1
 port$Price[port$Currency=="U"] <- CADperUSD*port$Price[port$Currency=="U"]
-port$ACB[port$Currency=="U"] <- CADperUSD*port$ACB[port$Currency=="U"]
+port$ACB[port$Currency=="U" & port$SecType != "C"] <- CADperUSD*port$ACB[port$Currency=="U" & port$SecType != "C"]
 port <- port %>%
     mutate(val=round(Price*Amount/1000,1)) %>%
     mutate(gain=round((Price-ACB)*Amount,1)) %>%
