@@ -26,11 +26,17 @@ port <- port %>%
     mutate(cad=Alloc/100*amount) %>%
     mutate(usd=cad/CADperUSD) %>%
     mutate(shrs=floor(cad/Price))
-port
+
 sum <- port %>%
     summarize(sum(cad))
 cash <- amount-sum
 cash
+
+cash_frame = data.frame(Comment="Cash", Currency="CAD", Ticker="CADUSD=X", Alloc=(cash/amount*100), Price=1.0, cad=cash, usd=(cash/CADperUSD), 1)
+names(cash_frame) <- c("Comment", "Currency", "Ticker", "Alloc", "Price", "cad", "usd", "shrs")
+port <- port %>%
+  rbind(cash_frame)
+port
 
 ########################################################
 # Visualization
