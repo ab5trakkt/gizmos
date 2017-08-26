@@ -91,4 +91,3 @@ if(visualize == TRUE) {
         plot1 <- plot_grid (model, plot2, shares, nrow = 3, scale = 0.9)
         plot1
 }
-
