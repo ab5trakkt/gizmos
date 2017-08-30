@@ -1,5 +1,5 @@
 visualize <- TRUE
-amount = 10000
+amount = 50000
 filename <- file.path(getwd(), "model-etf.csv")
 
 ########################################################
@@ -42,6 +42,7 @@ port
 # Visualization
 if(visualize == TRUE) {
     library(ggplot2)
+    library(scales)
     library(cowplot)
 
     # Model allocation
@@ -58,7 +59,7 @@ if(visualize == TRUE) {
         geom_col(width = 0.4) +
         scale_fill_brewer(palette = "Set3") +
         geom_text(aes(label = dollar(cad)), size = 4, position = position_stack(vjust = 0.5), colour = "#4d4e50") +
-        geom_text(data = port, aes(label = percent(Alloc/100), hjust = -1.5), position = position_stack(vjust = 0.5), colour = "#4d4e50") +
+        geom_text(data = port, aes(label = percent(Alloc/100), hjust = -1.5), position = position_stack(vjust = 0.5), colour = "#767171") +
         labs(title = "Ideal Allocation in CAD") +
         theme_void() +
         theme(legend.position = "none")
@@ -69,20 +70,23 @@ if(visualize == TRUE) {
         geom_col(width = 0.4) +
         scale_fill_brewer(palette = "Set3") +
         geom_text(aes(label = dollar(round(usd,-1))), size = 4, position = position_stack(vjust = 0.5), colour = "#4d4e50") +
-        geom_text(data = port, aes(label = percent(Alloc/100), hjust = -1.5), position = position_stack(vjust = 0.5), colour = "#4d4e50") +
+        geom_text(data = port, aes(label = percent(Alloc/100), hjust = -1.5), position = position_stack(vjust = 0.5), colour = "#767171") +
         labs(title = "Ideal Allocation in USD") +
         theme_void() +
         theme(legend.position = "none")
 
 
     # Number of shares to purchase
-    shares <- ggplot(port, aes(x =Ticker, y=shrs)) +
+    port2 <- port %>%
+      filter(Ticker != "CADUSD=X")
+    
+    shares <- ggplot(port2, aes(x =Ticker, y=shrs)) +
         geom_col(width = 0.8, fill = "#d9d9d9") +
-        geom_text(aes(label = shrs), vjust = -1, colour = "#4d4e50") +
-        scale_y_continuous(limits = c(0,170)) +
+        geom_text(aes(label = shrs), vjust = 1, colour = "#4d4e50") +
+        scale_y_continuous() +
         theme_minimal() +
         theme(legend.position = "none") +
-        labs(title = "Number of shares to purchase as of today",
+        labs(title = "Number of shares to hold as of today",
              subtitle = Sys.Date(),
              x = NULL,
              y = NULL)
@@ -91,3 +95,4 @@ if(visualize == TRUE) {
         plot1 <- plot_grid (model, plot2, shares, nrow = 3, scale = 0.9)
         plot1
 }
+
