@@ -38,6 +38,7 @@ port <- port %>%
     arrange(val)
 #port
 
+# Port breakdown
 tblC <- port %>%
   group_by(AcctType) %>%
   filter(SecType=='C') %>%
@@ -69,10 +70,30 @@ totF <- tbl %>%
 
 tot = totE+totC+totF
 
+# Port performance
 port <- port %>%
   mutate(r=round(val/tot*100,1)) %>%
   mutate(gain_pct_tot=round(gain_pct*0.01*r,1))
 port
+
+tblGC <- port %>%
+  group_by(AcctType) %>%
+  filter(SecType=='C') %>%
+  summarize(gainC=sum(gain), gain_pctC=sum(gain_pct_tot))
+
+tblGE <- port %>%
+  group_by(AcctType) %>%
+  filter(SecType=='E') %>%
+  summarize(gainE=sum(gain), gain_pctE=sum(gain_pct_tot))
+
+tblGF <- port %>%
+  group_by(AcctType) %>%
+  filter(SecType=='F') %>%
+  summarize(gainF=sum(gain), gain_pctF=sum(gain_pct_tot))
+
+tblG <- left_join(left_join(tblGE, tblGF), tblGC)
+tblG %>%
+  select(AcctType, gainE, gainF, gainC, gain_pctE, gain_pctF, gain_pctC)
 
 tbl <- tbl %>%
   mutate(totA=round(totE+totF+totC,1)) %>%
@@ -96,6 +117,9 @@ liquidity <- tbl %>%
   filter(AcctType=='T' | AcctType=='M' | AcctType=='S') %>%
   summarize(sum(totA)) %>%
   pull(1)
+
+tbl %>%
+  summarize(sum(totA)/CADperUSD, liquidity/CADperUSD, sum(totE)/CADperUSD, sum(totF)/CADperUSD, sum(totC)/CADperUSD, sum(RE), sum(RF), sum(RC))
 
 tbl %>%
   summarize(sum(totA), liquidity, sum(totE), sum(totF), sum(totC), sum(RE), sum(RF), sum(RC))
