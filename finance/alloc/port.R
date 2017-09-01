@@ -60,7 +60,7 @@ port <- port %>%
     mutate(gain=round((Price-ACB)*Amount,1)) %>%
     mutate(gain_pct=round(gain/(ACB*Amount)*100,1)) %>%
     arrange(val)
-#port
+port$gain_pct[is.nan(port$gain_pct)] <- 0
 
 # Port breakdown
 tblC <- port %>%
