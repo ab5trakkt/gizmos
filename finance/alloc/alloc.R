@@ -38,14 +38,25 @@ CADperUSD
 port <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE)
 port <- data.frame(port)
 port <- port %>%
-    mutate(Price=0)
+    mutate(Price=0, Div=0)
 
 for (q in port$Ticker)
 {
   sym = suppressWarnings(getSymbols(q, src="yahoo", auto.assign = F))
+  div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F))
   port$Price[port$Ticker==q] = as.numeric(Cl(last(sym)))
+  if (length(last(div)) != 0)
+  {
+      ep2 <- endpoints(div, on="weeks", k=52)
+      d <- last(period.apply(div, INDEX=ep2,FUN=sum))
+      #print(q)
+      #print(period.apply(div, INDEX=ep2,FUN=sum))
+      #print(d)
+      port$Div[port$Ticker==q] <- d
+  }
 }
 port$Price[port$Currency=="USD"] <- CADperUSD*port$Price[port$Currency=="USD"]
+port$Div[port$Currency=="USD"] <- CADperUSD*port$Div[port$Currency=="USD"]
 port <- port %>%
     mutate(cad=Alloc/100*amount) %>%
     mutate(usd=cad/CADperUSD) %>%
@@ -56,11 +67,18 @@ sum <- port %>%
 cash <- amount-sum
 cash
 
-cash_frame = data.frame(Comment="Cash", Currency="CAD", Ticker="CADUSD=X", Alloc=(cash/amount*100), Price=1.0, cad=cash, usd=(cash/CADperUSD), 1)
-names(cash_frame) <- c("Comment", "Currency", "Ticker", "Alloc", "Price", "cad", "usd", "shrs")
+cash_frame = data.frame(Comment="Cash", Currency="CAD", Ticker="CADUSD=X", Alloc=(cash/amount*100), Price=1.0, Div=0, cad=cash, usd=(cash/CADperUSD), 1)
+names(cash_frame) <- c("Comment", "Currency", "Ticker", "Alloc", "Price", "Div", "cad", "usd", "shrs")
 port <- port %>%
-  rbind(cash_frame)
+  rbind(cash_frame) %>%
+  mutate(trail_yield=round(Div/Price*100,1), yearly_dist=Div*shrs)
+total_yearly_dist <- port %>%
+    summarize(sum(yearly_dist)) %>%
+    pull(1)
 port
+total_yearly_dist
+r_total_yearly_dist <- round(total_yearly_dist/amount*100,1)
+r_total_yearly_dist
 
 ########################################################
 # Visualization

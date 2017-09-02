@@ -43,22 +43,33 @@ quotes <- port %>%
   filter(SecType != 'C') %>%
   filter(Name != 'NULL') %>%
   distinct(Name) %>%
-  mutate(Price=0)
+  mutate(Price=0,Div=0)
 
 for (q in quotes$Name)
 {
   sym = suppressWarnings(getSymbols(q, src="yahoo", auto.assign = F))
-  quotes$Price[quotes$Name==q] = as.numeric(Cl(last(sym)))
+  div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F))
+  quotes$Price[quotes$Name==q] <- as.numeric(Cl(last(sym)))
+  if (length(last(div)) != 0)
+  {
+      ep2 <- endpoints(div, on="weeks", k=52)
+      d <- last(period.apply(div, INDEX=ep2,FUN=sum))
+      quotes$Div[quotes$Name==q] <- d
+  }
 }
 
 port <- left_join(port, quotes)
+port$Div[is.na(port$Div)] <- 0
+port$Div[port$Currency=="U"] <- CADperUSD*port$Div[port$Currency=="U"]
 port$Price[is.na(port$Price)] <- 1
 port$Price[port$Currency=="U"] <- CADperUSD*port$Price[port$Currency=="U"]
 port$ACB[port$Currency=="U" & port$SecType != "C"] <- CADperUSD*port$ACB[port$Currency=="U" & port$SecType != "C"]
 port <- port %>%
+    mutate(trail_yield=round(Div/Price*100,1)) %>%
     mutate(val=round(Price*Amount/1000,1)) %>%
     mutate(gain=round((Price-ACB)*Amount,1)) %>%
     mutate(gain_pct=round(gain/(ACB*Amount)*100,1)) %>%
+    mutate(yearly_dist=round(Div*Amount,1)) %>%
     arrange(val)
 port$gain_pct[is.nan(port$gain_pct)] <- 0
 
@@ -98,7 +109,12 @@ tot = totE+totC+totF
 port <- port %>%
   mutate(r=round(val/tot*100,1)) %>%
   mutate(gain_pct_tot=round(gain_pct*0.01*r,1))
-port
+port %>%
+    select(Name, ACB, Price, val, trail_yield, gain, gain_pct, yearly_dist, r, gain_pct_tot, AcctType, SecType, Div)
+
+total_yearly_dist <- port %>%
+    summarize(sum(yearly_dist)) %>%
+    pull(1)
 
 tblGC <- port %>%
   group_by(AcctType) %>%
@@ -143,7 +159,8 @@ liquidity <- tbl %>%
   pull(1)
 
 tbl %>%
-  summarize(sum(totA)/CADperUSD, liquidity/CADperUSD, sum(totE)/CADperUSD, sum(totF)/CADperUSD, sum(totC)/CADperUSD, sum(RE), sum(RF), sum(RC))
+  summarize(sum(totA)/CADperUSD, liquidity/CADperUSD, sum(totE)/CADperUSD, sum(totF)/CADperUSD, sum(totC)/CADperUSD, total_yearly_dist/CADperUSD, sum(RE), sum(RF), sum(RC))
 
+r_yearly_dist <- round(total_yearly_dist/(1000*tot)*100,1)
 tbl %>%
-  summarize(sum(totA), liquidity, sum(totE), sum(totF), sum(totC), sum(RE), sum(RF), sum(RC))
+  summarize(sum(totA), liquidity, sum(totE), sum(totF), sum(totC), total_yearly_dist, r_yearly_dist,  sum(RE), sum(RF), sum(RC))
