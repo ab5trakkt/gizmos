@@ -23,7 +23,7 @@
 #
 
 visualize <- TRUE
-amount = 50000
+amount = 30000
 filename <- file.path(getwd(), "model-etf.csv")
 
 ########################################################
@@ -92,28 +92,29 @@ if(visualize == TRUE) {
         geom_col(width = 0.3) +
         scale_fill_brewer(palette = "Set3") +
         theme_void() +
-        geom_text(aes(label = percent(Alloc/100), hjust = -0.2), size = 4, position = position_stack(vjust = 0.5), colour = "#4d4e50") +
-        geom_text(data = port, aes(label = Ticker, hjust = 1), position = position_stack(vjust = 0.5), colour = "#4d4e50") +
+        geom_text(aes(label = percent(Alloc/100), hjust = -2), size = 4, position = position_stack(vjust = 0.5), colour = "#4d4e50") +
+        geom_text(data = port, aes(label = Ticker, hjust = 0.6), position = position_stack(vjust = 0.5), colour = "#4d4e50") +
+      theme(legend.position = "left") +
         labs(title = "Model Portfolio")
 
     # Ideal allocation in CAD
     allocCad <- ggplot(port, aes(x ="", y=cad, fill = Comment)) +
-        geom_col(width = 0.4) +
+        geom_col(width = 0.5) +
         scale_fill_brewer(palette = "Set3") +
         geom_text(aes(label = dollar(cad)), size = 4, position = position_stack(vjust = 0.5), colour = "#4d4e50") +
         geom_text(data = port, aes(label = percent(Alloc/100), hjust = -1.5), position = position_stack(vjust = 0.5), colour = "#767171") +
-        labs(title = "Ideal Allocation in CAD") +
+        labs(title = "Allocation in CAD") +
         theme_void() +
         theme(legend.position = "none")
 
 
     # Ideal allocation in USD
     allocUsd <- ggplot(port, aes(x ="", y=usd, fill = Comment)) +
-        geom_col(width = 0.4) +
+        geom_col(width = 0.5) +
         scale_fill_brewer(palette = "Set3") +
         geom_text(aes(label = dollar(round(usd,-1))), size = 4, position = position_stack(vjust = 0.5), colour = "#4d4e50") +
         geom_text(data = port, aes(label = percent(Alloc/100), hjust = -1.5), position = position_stack(vjust = 0.5), colour = "#767171") +
-        labs(title = "Ideal Allocation in USD") +
+        labs(title = "Allocation in USD") +
         theme_void() +
         theme(legend.position = "none")
 
@@ -124,7 +125,7 @@ if(visualize == TRUE) {
     
     shares <- ggplot(port2, aes(x =Ticker, y=shrs)) +
         geom_col(width = 0.8, fill = "#d9d9d9") +
-        geom_text(aes(label = shrs), vjust = 1, colour = "#4d4e50") +
+        geom_text(aes(label = shrs), vjust = 1, colour = "#4d4e50", size = 3.5) +
         scale_y_continuous() +
         theme_minimal() +
         theme(legend.position = "none") +
@@ -133,8 +134,31 @@ if(visualize == TRUE) {
              x = NULL,
              y = NULL)
 
+    # Trail Yield
+    plotyield <- ggplot(port2, aes(x =Ticker, y=trail_yield)) +
+      geom_col(width = 0.8, fill = "#d9d9d9") +
+      geom_text(aes(label = trail_yield), vjust = 1, colour = "#4d4e50") +
+      scale_y_continuous() +
+      theme_minimal() +
+      theme(legend.position = "none") +
+      labs(title = "Trail Yield (dividends/price*100)",
+           x = NULL,
+           y = NULL)
+    
+    #Total Year Distribution
+    plotdist <- ggplot(port2, aes(x =Ticker, y=yearly_dist)) +
+      geom_col(width = 0.8, fill = "#d9d9d9") +
+      geom_text(aes(label = dollar(round(yearly_dist,1))), vjust = 1, colour = "#4d4e50") +
+      annotate("text", x = 5.5, y = Inf, label = paste("Your Total Year Distribution =", dollar(round(total_yearly_dist,1))), vjust = "top") +
+      scale_y_continuous() +
+      theme_minimal() +
+      theme(legend.position = "none") +
+      labs(title = "Dividends: Yearly Distribution",
+           x = NULL,
+           y = NULL)
+    
         plot2 <- plot_grid(allocCad, allocUsd)
-        plot1 <- plot_grid (model, plot2, shares, nrow = 3, scale = 0.9)
+        plot3 <- plot_grid(shares, plotyield)
+        plot1 <- plot_grid (model, plot2, plot3, plotdist, nrow = 4, scale = 0.9)
         plot1
 }
-
