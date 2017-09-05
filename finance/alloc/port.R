@@ -63,6 +63,7 @@ port$Div[is.na(port$Div)] <- 0
 port$Div[port$Currency=="U"] <- CADperUSD*port$Div[port$Currency=="U"]
 port$Price[is.na(port$Price)] <- 1
 port$Price[port$Currency=="U"] <- CADperUSD*port$Price[port$Currency=="U"]
+port$Tgt[port$Currency=="U"] <- CADperUSD*port$Tgt[port$Currency=="U"]
 port$ACB[port$Currency=="U" & port$SecType != "C"] <- CADperUSD*port$ACB[port$Currency=="U" & port$SecType != "C"]
 port <- port %>%
     mutate(trail_yield=round(Div/Price*100,1)) %>%
@@ -70,7 +71,9 @@ port <- port %>%
     mutate(gain=round((Price-ACB)*Amount,1)) %>%
     mutate(gain_pct=round(gain/(ACB*Amount)*100,1)) %>%
     mutate(yearly_dist=round(Div*Amount,1)) %>%
+    mutate(tgt_pct=round(100*(Tgt-Price)/Price,1)) %>%
     arrange(val)
+port$tgt_pct[port$tgt_pct<0] <- 0
 port$gain_pct[is.nan(port$gain_pct)] <- 0
 
 # Port breakdown
@@ -110,7 +113,7 @@ port <- port %>%
   mutate(r=round(val/tot*100,1)) %>%
   mutate(gain_pct_tot=round(gain_pct*0.01*r,1))
 port %>%
-    select(Name, ACB, Price, val, trail_yield, gain, gain_pct, yearly_dist, r, gain_pct_tot, AcctType, SecType, Div)
+    select(Name, ACB, Price, val, trail_yield, gain, gain_pct, yearly_dist, r, gain_pct_tot, AcctType, SecType, Div, Tgt, tgt_pct)
 
 total_yearly_dist <- port %>%
     summarize(sum(yearly_dist)) %>%
