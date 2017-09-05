@@ -43,7 +43,7 @@ port <- port %>%
 for (q in port$Ticker)
 {
   sym = suppressWarnings(getSymbols(q, src="yahoo", auto.assign = F))
-  div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F))
+  div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F, from=Sys.Date()-365))
   port$Price[port$Ticker==q] = as.numeric(Cl(last(sym)))
   if (length(last(div)) != 0)
   {

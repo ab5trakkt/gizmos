@@ -48,7 +48,7 @@ quotes <- port %>%
 for (q in quotes$Name)
 {
   sym = suppressWarnings(getSymbols(q, src="yahoo", auto.assign = F))
-  div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F))
+  div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F, from=Sys.Date()-365))
   quotes$Price[quotes$Name==q] <- as.numeric(Cl(last(sym)))
   if (length(last(div)) != 0)
   {
