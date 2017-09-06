@@ -47,10 +47,7 @@ for (q in port$Ticker)
   port$Price[port$Ticker==q] = as.numeric(Cl(last(sym)))
   if (length(last(div)) != 0)
   {
-      ep2 <- endpoints(div, on="weeks", k=52)
-      d <- last(period.apply(div, INDEX=ep2,FUN=sum))
-      #print(q)
-      #print(period.apply(div, INDEX=ep2,FUN=sum))
+      d <- colSums(div)
       #print(d)
       port$Div[port$Ticker==q] <- d
   }

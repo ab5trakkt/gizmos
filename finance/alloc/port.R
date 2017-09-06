@@ -52,8 +52,7 @@ for (q in quotes$Name)
   quotes$Price[quotes$Name==q] <- as.numeric(Cl(last(sym)))
   if (length(last(div)) != 0)
   {
-      ep2 <- endpoints(div, on="weeks", k=52)
-      d <- last(period.apply(div, INDEX=ep2,FUN=sum))
+      d <- colSums(div)
       quotes$Div[quotes$Name==q] <- d
   }
 }
