@@ -40,38 +40,8 @@ sprintf("Total payments (%d-year):     %d", Y, T*m*Y)
 ```
 
 ```{r}
-i_eff <- function(i,T)
-{
-  1.0+(i/100/T)
-}
+source("utility.R")
 
-# Calculate k^-1 + k^-2 + .. + k^-n
-inv_sum_k <- function(k, n)
-{
-  s <- 0
-  for (j in seq(1,n))
-  {
-    s <- s + k^-j
-  }
-  return (s)
-}
-
-
-# Calculate 1+ k + k^2 + .. + k^n
-sum_k <- function(k, n)
-{
-  s <- 0
-  for (j in seq(0,n))
-  {
-    s <- k*s+1
-  }
-  return (s)
-}
-#print(i_sum_k(2,0))
-#print(sum_k(2,2))
-```
-
-```{r}
 i <- seq(i_start,i_end, by=i_step) 
 mp_0 <- floor(m*inv_sum_k(i_eff(i, T), N))
 mp_5 <- floor(mp_0/0.95)
