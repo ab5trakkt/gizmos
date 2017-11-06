@@ -36,7 +36,7 @@ symCADperUSD <- suppressWarnings(getSymbols("CADUSD=X", src="yahoo", auto.assign
 CADperUSD <- 1.0/as.numeric(Cl(last(symCADperUSD)))
 CADperUSD
 
-port <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE)
+port <- read.csv(filename, header=TRUE, stringsAsFactors=FALSE, strip.white=TRUE)
 port <- data.frame(port)
 
 quotes <- port %>%
@@ -50,6 +50,7 @@ for (q in quotes$Name)
   sym = suppressWarnings(getSymbols(q, src="yahoo", auto.assign = F))
   div = suppressWarnings(getDividends(q, src="yahoo", auto.assign = F, from=Sys.Date()-365))
   quotes$Price[quotes$Name==q] <- as.numeric(Cl(last(sym)))
+  quotes$Date[quotes$Name==q] <- as.character(index(last(sym)))
   if (length(last(div)) != 0)
   {
       d <- colSums(div)
@@ -112,7 +113,7 @@ port <- port %>%
   mutate(r=round(val/tot*100,1)) %>%
   mutate(gain_pct_tot=round(gain_pct*0.01*r,1))
 port %>%
-    select(Name, ACB, Price, val, trail_yield, gain, gain_pct, yearly_dist, r, gain_pct_tot, AcctType, SecType, Div, Tgt, tgt_pct)
+    select(Name, Date, ACB, Price, val, trail_yield, gain, gain_pct, yearly_dist, r, gain_pct_tot, AcctType, SecType, Div, Tgt, tgt_pct)
 
 total_yearly_dist <- port %>%
     summarize(sum(yearly_dist)) %>%
