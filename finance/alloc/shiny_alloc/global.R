@@ -1,0 +1,16 @@
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(forcats)
+library(scales)
+library(DT)
+library(shinyjs)
+library(shinycssloaders)
+library(quantmod)
+library(cowplot)
+
+filename <- file.path(getwd(), "../model-etf.csv")
+port <- read_csv(filename)
+
+symCADperUSD <- suppressWarnings(getSymbols("CADUSD=X", src="yahoo", auto.assign = F))
+CADperUSD <- 1.0/as.numeric(Cl(last(symCADperUSD)))
